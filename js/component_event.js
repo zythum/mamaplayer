@@ -59,10 +59,46 @@ module.exports = {
 		clickEvent.on('normalscreen', this.onNormalScreenClick, this)
 		clickEvent.on('comments-btn', this.oncommentsBtnClick, this)
 
+		doc.documentElement.addEventListener('keydown', this.onKeyDown.bind(this), false)
+
 		this.DOMs.player.addEventListener('mousemove', this.onMouseActive.bind(this));
 
 		progressAnchor(this.DOMs.progress_anchor, doc, this.onProgressAnchorWillSet.bind(this), this.onProgressAnchorSet.bind(this))
 		progressAnchor(this.DOMs.volume_anchor, doc, this.onVolumeAnchorWillSet.bind(this))
+	},
+	onKeyDown: function (e) {
+		e.preventDefault();
+		switch (e.keyCode) {
+			case 32: //空格
+				this.onPlayClick()
+				break
+			case 39: //右
+				this.video.currentTime = Math.min(this.video.duration, this.video.currentTime + 10)
+				break
+			case 37: //左
+				this.video.currentTime = Math.max(0, this.video.currentTime - 10)
+				break
+			case 38: //上
+				this.video.volume = Math.min(1, this.video.volume + 0.1)
+				this.DOMs.volume_anchor.style.width = this.video.volume*100 + '%'
+				break
+			case 40: //下
+				this.video.volume = Math.max(0, this.video.volume - 0.1)
+				this.DOMs.volume_anchor.style.width = this.video.volume*100 + '%'
+				break
+			case 65: //a
+				if ( this.DOMs.player.classList.contains('allscreen') ) {
+					this.onNormalScreenClick()
+				} else {
+					this.onAllScreenClick()
+				}		
+				break
+			case 70: //f
+				if ( !this.DOMs.player.classList.contains('fullscreen') ) {
+					this.onfullScreenClick()
+				}
+				break
+		}
 	},
 	onVideoClick: function () {		
 		if (this.videoClickDblTimer == undefined) {

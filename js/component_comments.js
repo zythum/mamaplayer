@@ -38,10 +38,10 @@ module.exports = {
 
 		this.commentTopQueue.forEach(function (comment, index) {
 			if (comment != undefined) {
-				if (t > comment.startTime + commentTopOrTopShowDuration) {
+				if (t > comment.startTime + commentButtonOrTopShowDuration) {
 					this.commentTopQueue[index] = undefined
 				} else {
-					this.drawText(comment.text, this.canvasWidth/2,  commentRowHeight * index, comment.color)
+					this.drawText(comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), comment.color)
 				}
 			}
 		}.bind(this))
@@ -55,13 +55,13 @@ module.exports = {
 			this.commentTopQueue.forEach(function (_comment, index) {
 				if (comment && _comment === undefined) {
 					_comment = this.commentTopQueue[index] = comment
-					this.drawText(_comment.text, this.canvasWidth/2,  commentRowHeight * index, _comment.color)
+					this.drawText(_comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), _comment.color)
 					comment = undefined
 				}
 			}.bind(this))
 			if (comment) {
 				this.commentTopQueue.push(comment)
-				this.drawText(comment.text, this.canvasWidth/2,  commentRowHeight * (this.commentTopQueue.length - 1), comment.color)
+				this.drawText(comment.text, this.canvasWidth/2,  commentRowHeight * this.commentTopQueue.length, comment.color)
 			}
 		}
 	},
@@ -165,7 +165,8 @@ module.exports = {
 		this.canvas.font = fontStyle
 
 		this.drawCommentLoop()
-		this.drawCommentBottom()
+		this.drawCommentTop()
+		this.drawCommentBottom()		
 	},
 	onCommentTimeUpdate: function () {
 		if (this.enableComment === false) return
