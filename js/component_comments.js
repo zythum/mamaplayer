@@ -3,6 +3,7 @@ var commentLoopSpeed = 0.1 // px/ms
 var commentRowHeight = 25 // px
 var commentButtonOrTopShowDuration = 4000// ms
 var fontStyle = 'bold 18px "PingHei","Lucida Grande", "Lucida Sans Unicode", "STHeiti", "Helvetica","Arial","Verdana","sans-serif"'
+var lastColor = null
 module.exports = {
 	init: function () {
 		setInterval(this.onCommentTimeUpdate.bind(this), 80)
@@ -27,7 +28,9 @@ module.exports = {
 		this.DOMs.comments.display = this.enableComment ? 'block' : 'none'
 	},
 	drawText: function (text, left, top, color) {
-		this.canvas.fillStyle = color
+		if (lastColor != color) {
+			this.canvas.fillStyle = lastColor = color
+		}		
 		this.canvas.strokeText(text, left|0, top|0)
 		this.canvas.fillText(text, left|0, top|0)
 	},
