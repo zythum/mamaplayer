@@ -3,10 +3,10 @@ var commentLoopSpeed = 0.1 // px/ms
 var commentRowHeight = 25 // px
 var commentButtonOrTopShowDuration = 4000// ms
 var fontStyle = 'bold 18px "PingHei","Lucida Grande", "Lucida Sans Unicode", "STHeiti", "Helvetica","Arial","Verdana","sans-serif"'
-var lastColor = null
+
 module.exports = {
 	init: function () {
-		setInterval(this.onCommentTimeUpdate.bind(this), 80)
+		setInterval(this.onCommentTimeUpdate.bind(this), 100)
 		this.lastCommnetUpdateTime = 0
 		this.lastCommnetIndex = 0
 		
@@ -19,32 +19,51 @@ module.exports = {
 		this.commentTopPreQueue = []
 		this.commentTopQueue = []
 
-		this.enableComment = this.comments === undefined ? false : true
+		this.drawQueue = []
 
+		this.enableComment = this.comments === undefined ? false : true
+		
 		this.canvas = this.DOMs.comments.getContext('2d')
 		
 		this.DOMs.player.classList.add('has-comments')
 		this.DOMs['comments-btn'].classList.add('enable')
 		this.DOMs.comments.display = this.enableComment ? 'block' : 'none'
+
 	},
-	drawText: function (text, left, top, color) {
-		if (lastColor != color) {
-			this.canvas.fillStyle = lastColor = color
-		}		
-		this.canvas.strokeText(text, left|0, top|0)
-		this.canvas.fillText(text, left|0, top|0)
+	preDrawText: function (text, left, top, color, textAlign) {
+		this.drawQueue.push([text, left|0, top|0, color, textAlign]);
 	},
-	drawCommentTop: function () {
+	drawText: function () {
+		var one
+		var lastColor
+		var lastTextAlign
+		
+		this.canvas.strokeStyle = 'black'
+		this.canvas.lineWidth = 2
+		this.canvas.font = fontStyle
+
+		while(one = this.drawQueue.shift()) {
+			if (lastColor != one[3]) {
+				this.canvas.fillStyle = lastColor = one[3]
+			}
+			if (lastTextAlign != one[4]) {
+				this.canvas.textAlign = lastTextAlign = one[4]
+			}
+			this.canvas.strokeText(one[0], one[1], one[2])
+			this.canvas.fillText(one[0], one[1], one[2])
+		}
+	},
+	commentTop: function () {
 		var t = Date.now()
 		
-		this.canvas.textAlign = 'center'
+		var textAlign = 'center'
 
 		this.commentTopQueue.forEach(function (comment, index) {
 			if (comment != undefined) {
 				if (t > comment.startTime + commentButtonOrTopShowDuration) {
 					this.commentTopQueue[index] = undefined
 				} else {
-					this.drawText(comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), comment.color)
+					this.preDrawText(comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), comment.color, textAlign)
 				}
 			}
 		}.bind(this))
@@ -58,28 +77,28 @@ module.exports = {
 			this.commentTopQueue.forEach(function (_comment, index) {
 				if (comment && _comment === undefined) {
 					_comment = this.commentTopQueue[index] = comment
-					this.drawText(_comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), _comment.color)
+					this.preDrawText(_comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), _comment.color, textAlign)
 					comment = undefined
 				}
 			}.bind(this))
 			if (comment) {
 				this.commentTopQueue.push(comment)
-				this.drawText(comment.text, this.canvasWidth/2,  commentRowHeight * this.commentTopQueue.length, comment.color)
+				this.preDrawText(comment.text, this.canvasWidth/2,  commentRowHeight * this.commentTopQueue.length, comment.color, textAlign)
 			}
 		}
 	},
-	drawCommentBottom: function () {
+	commentBottom: function () {
 		var t = Date.now()
 		var videoHeight = this.video.offsetHeight + 10
 		
-		this.canvas.textAlign = 'center'
+		var textAlign = 'center'
 
 		this.commentButtonQueue.forEach(function (comment, index) {
 			if (comment != undefined) {
 				if (t > comment.startTime + commentButtonOrTopShowDuration) {
 					this.commentButtonQueue[index] = undefined
 				} else {					
-					this.drawText(comment.text, this.canvasWidth/2,  videoHeight - commentRowHeight * (index+1), comment.color)
+					this.preDrawText(comment.text, this.canvasWidth/2,  videoHeight - commentRowHeight * (index+1), comment.color, textAlign)
 				}
 			}
 		}.bind(this))
@@ -93,13 +112,13 @@ module.exports = {
 			this.commentButtonQueue.forEach(function (_comment, index) {
 				if (comment && _comment === undefined) {
 					_comment = this.commentButtonQueue[index] = comment
-					this.drawText(_comment.text, this.canvasWidth/2,  videoHeight - commentRowHeight * (index+1), _comment.color)
+					this.preDrawText(_comment.text, this.canvasWidth/2,  videoHeight - commentRowHeight * (index+1), _comment.color, textAlign)
 					comment = undefined
 				}
 			}.bind(this))
 			if (comment) {
 				this.commentButtonQueue.push(comment)
-				this.drawText(comment.text, this.canvasWidth/2, videoHeight - commentRowHeight * (this.commentButtonQueue.length), comment.color)
+				this.preDrawText(comment.text, this.canvasWidth/2, videoHeight - commentRowHeight * (this.commentButtonQueue.length), comment.color, textAlign)
 			}
 		}
 	},
@@ -112,7 +131,7 @@ module.exports = {
 			width: this.canvas.measureText(comment.text).width + 20
 		}
 	},
-	drawCommentLoop: function () {
+	commentLoop: function () {
 		var t = Date.now()
 
 		var videoWidth  = this.video.offsetWidth
@@ -121,7 +140,7 @@ module.exports = {
 		var canvasWidth = this.canvasWidth
 		var canvasHeight = this.canvasHeight
 		
-		this.canvas.textAlign = 'left'
+		var textAlign = 'left'
 
 		var rows = (videoHeight / commentRowHeight) | 0
 
@@ -141,7 +160,7 @@ module.exports = {
 				if (nowPos < 0 || nowPos > comment.width + videoWidth) {
 					return false
 				} else {										
-					this.drawText(comment.text, canvasWidth - nowPos, commentRowHeight * i + 20, comment.color)
+					this.preDrawText(comment.text, canvasWidth - nowPos, commentRowHeight * i + 20, comment.color, textAlign)
 					return true
 				}
 			}.bind(this))
@@ -162,14 +181,12 @@ module.exports = {
 			this.DOMs.comments.setAttribute('height',  canvasHeight)	
 			this.canvasHeight = canvasHeight
 		}
-		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
-		this.canvas.strokeStyle = 'black'
-		this.canvas.lineWidth = 2
-		this.canvas.font = fontStyle
+		this.commentLoop()
+		this.commentTop()
+		this.commentBottom()
 
-		this.drawCommentLoop()
-		this.drawCommentTop()
-		this.drawCommentBottom()		
+		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+		this.drawText()
 	},
 	onCommentTimeUpdate: function () {
 		if (this.enableComment === false) return
