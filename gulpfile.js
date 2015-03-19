@@ -2,6 +2,7 @@ var gulp       = require('gulp');
 var browserify = require('gulp-browserify');
 var uglify     = require('gulp-uglify');
 var through2   = require('through2');
+var gutil      = require('gulp-util');
 
 function string2js () {
 	return through2.obj(function(file, encoding, callback) {
@@ -16,10 +17,15 @@ function string2js () {
 }
 
 gulp.task('buildStatic', function() {
-	gulp.src('./static/*').pipe(string2js()).pipe(gulp.dest('./js'));
+	gulp.src('./static/*')
+		.pipe(string2js())
+		.pipe(gulp.dest('./js'));
 });
 gulp.task('buildJs', function() {
-	gulp.src('./js/player.js').pipe(browserify()).pipe(uglify()).pipe(gulp.dest('./'));
+	gulp.src('./js/player.js')
+		.pipe(browserify().on('error', gutil.log))
+		.pipe(uglify())
+		.pipe(gulp.dest('./'));
 });
 gulp.task('watch', ['build'], function() {
 	gulp.watch(['./**/*', '!./js/*.css.js', '!./js/*.html.js'], ['build']);

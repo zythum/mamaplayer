@@ -2,11 +2,27 @@ var createElement = require('./createElement')
 var commentLoopSpeed = 0.1 // px/ms
 var commentRowHeight = 25 // px
 var commentButtonOrTopShowDuration = 4000// ms
-var fontStyle = 'bold 18px "PingHei","Lucida Grande", "Lucida Sans Unicode", "STHeiti", "Helvetica","Arial","Verdana","sans-serif"'
+var fontStyle = 'bold 20px "PingHei","Lucida Grande", "Lucida Sans Unicode", "STHeiti", "Helvetica","Arial","Verdana","sans-serif"'
+
+function setCanvasStyle (canvas) {
+	canvas.strokeStyle = 'black'
+	canvas.lineWidth = 2
+	canvas.font = fontStyle
+}
+
+var requestAnimationFrame = window.requestAnimationFrame
+|| window.mozRequestAnimationFrame
+|| window.webkitRequestAnimationFrame
+|| window.msRequestAnimationFrame
+|| window.oRequestAnimationFrame
+|| function(callback) {
+setTimeout(callback, 1000 / 60)
+};
 
 module.exports = {
-	init: function () {
-		setInterval(this.onCommentTimeUpdate.bind(this), 100)
+	init: function () {		
+		this.video.addEventListener('play', this.reStartComment.bind(this))
+		this.video.addEventListener('pause', this.pauseComment.bind(this))
 		this.lastCommnetUpdateTime = 0
 		this.lastCommnetIndex = 0
 		
@@ -21,6 +37,9 @@ module.exports = {
 
 		this.drawQueue = []
 
+		this.preRenders = []
+		this.preRenderMap = {}
+
 		this.enableComment = this.comments === undefined ? false : true
 		
 		this.canvas = this.DOMs.comments.getContext('2d')
@@ -29,121 +48,140 @@ module.exports = {
 		this.DOMs['comments-btn'].classList.add('enable')
 		this.DOMs.comments.display = this.enableComment ? 'block' : 'none'
 
+		var loop = function () {
+			this.onCommentTimeUpdate()
+			requestAnimationFrame(loop)
+		}.bind(this)
+		loop()
+		// setInterval(this.onCommentTimeUpdate.bind(this), 40)
 	},
-	preDrawText: function (text, left, top, color, textAlign) {
-		this.drawQueue.push([text, left|0, top|0, color, textAlign]);
+	needDrawText: function (comment, left, top) {
+		this.drawQueue.push([comment, left|0, top|0]);
 	},
 	drawText: function () {
-		var one
-		var lastColor
-		var lastTextAlign
-		
-		this.canvas.strokeStyle = 'black'
-		this.canvas.lineWidth = 2
-		this.canvas.font = fontStyle
+		var canUseCanvasIndex = [];
+		this.preRenders.forEach(function (canvas, index) {
+			canvas.used = false;
+			if (canvas.cid === undefined) {
+				canUseCanvasIndex.push(index)
+			}
+		})
 
+		var one
 		while(one = this.drawQueue.shift()) {
-			if (lastColor != one[3]) {
-				this.canvas.fillStyle = lastColor = one[3]
+			(function (one, _this) {
+				var cid = one[0].text + one[0].color
+				var index = _this.preRenderMap[cid]
+				var canvas				
+				if (index === undefined) {
+					var index = canUseCanvasIndex.shift()
+					if (index === undefined) {
+						canvas = document.createElement('canvas')
+						index  = _this.preRenders.push(canvas) - 1
+					} else {
+						canvas = _this.preRenders[index]
+					}					
+					var width   = canvas.width = one[0].width
+					var height  = canvas.height = commentRowHeight+10
+					var context = canvas.getContext('2d')
+					context.clearRect(0, 0, width, height)
+					setCanvasStyle(context)
+					context.fillStyle = one[0].color
+					context.strokeText(one[0].text, 0, commentRowHeight)					
+					context.fillText(one[0].text, 0, commentRowHeight)
+					canvas.cid = cid
+					_this.preRenderMap[cid] = index
+				} else {
+					canvas = _this.preRenders[index]
+				}
+				canvas.used = true
+				_this.canvas.drawImage(canvas, one[1], one[2])
+			}(one, this))
+		}
+
+		this.preRenders.forEach(function (canvas, index) {
+			if (canvas.used === false) {
+				delete this.preRenderMap[canvas.cid]
+				canvas.cid = undefined
 			}
-			if (lastTextAlign != one[4]) {
-				this.canvas.textAlign = lastTextAlign = one[4]
-			}
-			this.canvas.strokeText(one[0], one[1], one[2])
-			this.canvas.fillText(one[0], one[1], one[2])
+		}.bind(this))
+		// var one
+		// var lastColor		
+		// setCanvasStyle(this.canvas)
+		// while(one = this.drawQueue.shift()) {
+		// 	if (lastColor != one[0].color) {
+		// 		this.canvas.fillStyle = lastColor = one[0].color
+		// 	}
+		// 	this.canvas.strokeText(one[0].text, one[1], one[2])
+		// 	this.canvas.fillText(one[0].text, one[1], one[2])
+		// }
+	},
+	createComment: function (comment, startTime) {
+		if (comment === undefined) return false
+		setCanvasStyle(this.canvas)
+		var size = this.canvas.measureText(comment.text);
+		return {
+			startTime: startTime,
+			text: comment.text,
+			color: comment.color,
+			width: size.width + 20
 		}
 	},
-	commentTop: function () {
-		var t = Date.now()
-		
-		var textAlign = 'center'
-
+	commentTop: function (videoWidth, videoHeight, t) {
 		this.commentTopQueue.forEach(function (comment, index) {
 			if (comment != undefined) {
 				if (t > comment.startTime + commentButtonOrTopShowDuration) {
 					this.commentTopQueue[index] = undefined
 				} else {
-					this.preDrawText(comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), comment.color, textAlign)
+					this.needDrawText(comment, (videoWidth-comment.width)/2,  commentRowHeight * index)
 				}
 			}
 		}.bind(this))
 		var comment
 		while(comment = this.commentTopPreQueue.shift()) {
-			comment = {
-				startTime: t,
-				text: comment.text,
-				color: comment.color
-			}
+			comment = this.createComment(comment, t)
 			this.commentTopQueue.forEach(function (_comment, index) {
 				if (comment && _comment === undefined) {
 					_comment = this.commentTopQueue[index] = comment
-					this.preDrawText(_comment.text, this.canvasWidth/2,  commentRowHeight * (index+1), _comment.color, textAlign)
+					this.needDrawText(_comment, (videoWidth-comment.width)/2,  commentRowHeight * index)
 					comment = undefined
 				}
 			}.bind(this))
 			if (comment) {
 				this.commentTopQueue.push(comment)
-				this.preDrawText(comment.text, this.canvasWidth/2,  commentRowHeight * this.commentTopQueue.length, comment.color, textAlign)
+				this.needDrawText(comment, (videoWidth-comment.width)/2,  commentRowHeight * this.commentTopQueue.length-1)
 			}
 		}
 	},
-	commentBottom: function () {
-		var t = Date.now()
-		var videoHeight = this.video.offsetHeight + 10
-		
-		var textAlign = 'center'
-
+	commentBottom: function (videoWidth, videoHeight, t) {
+		videoHeight = videoHeight - 10
 		this.commentButtonQueue.forEach(function (comment, index) {
 			if (comment != undefined) {
 				if (t > comment.startTime + commentButtonOrTopShowDuration) {
 					this.commentButtonQueue[index] = undefined
 				} else {					
-					this.preDrawText(comment.text, this.canvasWidth/2,  videoHeight - commentRowHeight * (index+1), comment.color, textAlign)
+					this.needDrawText(comment, (videoWidth-comment.width)/2,  videoHeight - commentRowHeight * (index+1))
 				}
 			}
 		}.bind(this))
 		var comment
 		while(comment = this.commentButtonPreQueue.shift()) {
-			comment = {
-				startTime: t,
-				text: comment.text,
-				color: comment.color
-			}
+			comment = this.createComment(comment, t)
 			this.commentButtonQueue.forEach(function (_comment, index) {
 				if (comment && _comment === undefined) {
 					_comment = this.commentButtonQueue[index] = comment
-					this.preDrawText(_comment.text, this.canvasWidth/2,  videoHeight - commentRowHeight * (index+1), _comment.color, textAlign)
+					this.needDrawText(_comment, (videoWidth-comment.width)/2,  videoHeight - commentRowHeight * (index+1))
 					comment = undefined
 				}
 			}.bind(this))
 			if (comment) {
 				this.commentButtonQueue.push(comment)
-				this.preDrawText(comment.text, this.canvasWidth/2, videoHeight - commentRowHeight * (this.commentButtonQueue.length), comment.color, textAlign)
+				this.needDrawText(comment, (videoWidth-comment.width)/2, videoHeight - commentRowHeight * this.commentButtonQueue.length)
 			}
 		}
 	},
-	createLoopComment: function (comment, startTime) {
-		if (comment === undefined) return false
-		return {
-			startTime: startTime,
-			text: comment.text,
-			color: comment.color,
-			width: this.canvas.measureText(comment.text).width + 20
-		}
-	},
-	commentLoop: function () {
-		var t = Date.now()
-
-		var videoWidth  = this.video.offsetWidth
-		var videoHeight = this.video.offsetHeight
-		
-		var canvasWidth = this.canvasWidth
-		var canvasHeight = this.canvasHeight
-		
-		var textAlign = 'left'
-
+	commentLoop: function (videoWidth, videoHeight, t) {
 		var rows = (videoHeight / commentRowHeight) | 0
-
 		var i = -1
 		while (++i < rows) {
 			var thisCommentLoopQueue = this.commentLoopQueue[i]
@@ -151,7 +189,7 @@ module.exports = {
 			if (this.commentLoopPreQueue.length > 0) {
 				var last = thisCommentLoopQueue.length === 0 ? undefined : thisCommentLoopQueue[thisCommentLoopQueue.length - 1]
 				if ( last === undefined || (t - last.startTime) * commentLoopSpeed > last.width ) {
-					var newCommentLoop = this.createLoopComment(this.commentLoopPreQueue.shift(), t)
+					var newCommentLoop = this.createComment(this.commentLoopPreQueue.shift(), t)
 					newCommentLoop && thisCommentLoopQueue.push(newCommentLoop)
 				}
 			}
@@ -160,7 +198,7 @@ module.exports = {
 				if (nowPos < 0 || nowPos > comment.width + videoWidth) {
 					return false
 				} else {										
-					this.preDrawText(comment.text, canvasWidth - nowPos, commentRowHeight * i + 20, comment.color, textAlign)
+					this.needDrawText(comment, videoWidth - nowPos, commentRowHeight * i)
 					return true
 				}
 			}.bind(this))
@@ -170,23 +208,48 @@ module.exports = {
 			this.commentLoopQueue.pop()
 		}
 	},
+	pauseComment: function () {
+		this.pauseCommentAt = Date.now();
+	},
+	reStartComment: function () {
+		if (this.pauseCommentAt) {
+			var _t = Date.now() - this.pauseCommentAt
+			this.commentLoopQueue.forEach(function (queue) {
+				queue.forEach(function (comment) {
+					if (comment) comment.startTime += _t
+				})
+			})
+			this.commentButtonQueue.forEach(function (comment) {
+				if (comment) comment.startTime += _t
+			})
+			this.commentTopQueue.forEach(function (comment) {
+				if (comment) comment.startTime += _t
+			})
+		}
+		this.pauseCommentAt = undefined;	
+	},
 	drawComment: function () {
-		var canvasWidth = this.DOMs['video-frame'].offsetWidth
-		var canvasHeight = this.DOMs['video-frame'].offsetHeight
-		if (canvasWidth != this.canvasWidth) {
-			this.DOMs.comments.setAttribute('width',  canvasWidth)
-			this.canvasWidth = canvasWidth
-		}
-		if (canvasHeight != this.canvasHeight) {
-			this.DOMs.comments.setAttribute('height',  canvasHeight)	
-			this.canvasHeight = canvasHeight
-		}
-		this.commentLoop()
-		this.commentTop()
-		this.commentBottom()
+		if (!this.pauseCommentAt) {
+			var t = Date.now()
+			var canvasWidth = this.DOMs['video-frame'].offsetWidth
+			var canvasHeight = this.DOMs['video-frame'].offsetHeight
+			if (canvasWidth != this.canvasWidth) {
+				this.DOMs.comments.width = canvasWidth
+				this.canvasWidth = canvasWidth
+			}
+			if (canvasHeight != this.canvasHeight) {
+				this.DOMs.comments.height = canvasHeight
+				this.canvasHeight = canvasHeight
+			}
+			var videoWidth  = this.video.offsetWidth
+			var videoHeight = this.video.offsetHeight
+			this.commentLoop(videoWidth, videoHeight, t)
+			this.commentTop(videoWidth, videoHeight, t)
+			this.commentBottom(videoWidth, videoHeight, t)
 
-		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
-		this.drawText()
+			this.canvas.clearRect(0, 0, canvasWidth, canvasHeight)
+			this.drawText()
+		}
 	},
 	onCommentTimeUpdate: function () {
 		if (this.enableComment === false) return
