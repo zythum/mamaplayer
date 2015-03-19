@@ -48,8 +48,9 @@ module.exports = {
 		this.DOMs['comments-btn'].classList.add('enable')
 		this.DOMs.comments.display = this.enableComment ? 'block' : 'none'
 
+		var loopCount = 0;
 		var loop = function () {
-			this.onCommentTimeUpdate()
+			(loopCount = ~loopCount) && this.onCommentTimeUpdate()
 			requestAnimationFrame(loop)
 		}.bind(this)
 		loop()
