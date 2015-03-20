@@ -2,13 +2,17 @@ var createElement = require('./createElement')
 var commentLoopSpeed = 0.1 // px/ms
 var commentRowHeight = 25 // px
 var commentButtonOrTopShowDuration = 4000// ms
-var fontStyle = 'bold 20px "PingHei","Lucida Grande", "Lucida Sans Unicode", "STHeiti", "Helvetica","Arial","Verdana","sans-serif"'
 
-function setCanvasStyle (canvas) {
-	canvas.strokeStyle = 'black'
-	canvas.lineWidth = 2
-	canvas.font = fontStyle
+//文字样式
+function setCanvasStyle (canvasContext) {
+	canvasContext.strokeStyle = 'black'
+	canvasContext.lineWidth = 3
+	canvasContext.font = 'bold 20px "PingHei","Lucida Grande", "Lucida Sans Unicode", "STHeiti", "Helvetica","Arial","Verdana","sans-serif"'
 }
+
+//测试文字在canvas中的长度用
+var testCanvasContext = document.createElement('canvas').getContext('2d')
+setCanvasStyle(testCanvasContext)
 
 var requestAnimationFrame = window.requestAnimationFrame
 || window.mozRequestAnimationFrame
@@ -42,6 +46,7 @@ module.exports = {
 
 		this.enableComment = this.comments === undefined ? false : true
 		
+		this.prevDrawCanvas = document.createElement('canvas')
 		this.canvas = this.DOMs.comments.getContext('2d')
 		
 		this.DOMs.player.classList.add('has-comments')
@@ -60,6 +65,13 @@ module.exports = {
 		this.drawQueue.push([comment, left|0, top|0]);
 	},
 	drawText: function () {
+		var prevDrawCanvas    = this.prevDrawCanvas
+		var prevDrawContext   = this.prevDrawCanvas.getContext('2d')
+		prevDrawCanvas.width  = this.canvasWidth
+		prevDrawCanvas.height = this.canvasHeight		
+
+		prevDrawContext.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+
 		var canUseCanvasIndex = [];
 		this.preRenders.forEach(function (canvas, index) {
 			canvas.used = false;
@@ -96,7 +108,7 @@ module.exports = {
 					canvas = _this.preRenders[index]
 				}
 				canvas.used = true
-				_this.canvas.drawImage(canvas, one[1], one[2])
+				prevDrawContext.drawImage(canvas, one[1], one[2])
 			}(one, this))
 		}
 
@@ -106,6 +118,9 @@ module.exports = {
 				canvas.cid = undefined
 			}
 		}.bind(this))
+
+		this.canvas.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+		this.canvas.drawImage(prevDrawCanvas, 0, 0);
 		// var one
 		// var lastColor		
 		// setCanvasStyle(this.canvas)
@@ -119,8 +134,7 @@ module.exports = {
 	},
 	createComment: function (comment, startTime) {
 		if (comment === undefined) return false
-		setCanvasStyle(this.canvas)
-		var size = this.canvas.measureText(comment.text);
+		var size = testCanvasContext.measureText(comment.text);
 		return {
 			startTime: startTime,
 			text: comment.text,
@@ -247,8 +261,6 @@ module.exports = {
 			this.commentLoop(videoWidth, videoHeight, t)
 			this.commentTop(videoWidth, videoHeight, t)
 			this.commentBottom(videoWidth, videoHeight, t)
-
-			this.canvas.clearRect(0, 0, canvasWidth, canvasHeight)
 			this.drawText()
 		}
 	},
