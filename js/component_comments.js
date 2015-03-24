@@ -65,7 +65,7 @@ module.exports = {
 		// setInterval(this.onCommentTimeUpdate.bind(this), 40)
 	},
 	needDrawText: function (comment, left, top) {
-		this.drawQueue.push([comment, left|0, top|0]);
+		this.drawQueue.push([comment, left, top]);
 	},
 	drawText: function () {
 		var prevDrawCanvas    = this.prevDrawCanvas
