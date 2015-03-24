@@ -49,7 +49,10 @@ module.exports = {
 		this.prevDrawCanvas = document.createElement('canvas')
 		this.canvas = this.DOMs.comments.getContext('2d')
 		
-		this.DOMs.player.classList.add('has-comments')
+		if (this.comments) {
+			this.DOMs.player.classList.add('has-comments')
+		}
+		
 		this.DOMs['comments-btn'].classList.add('enable')
 		this.DOMs.comments.display = this.enableComment ? 'block' : 'none'
 
