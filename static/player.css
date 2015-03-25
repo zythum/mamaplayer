@@ -218,10 +218,10 @@ html, body, .player { height: 100%; }
 }
 .controller .play:after {
 	font-family: "FontAwesome";
-	content: "\uf04c";
+	content: "\\f04c";
 }
 .controller .play.paused:after {
-	content: "\uf04b";
+	content: "\\f04b";
 }
 .controller .volume {
 	min-width: 30px;
@@ -236,7 +236,7 @@ html, body, .player { height: 100%; }
 }
 .controller .volume:before {
 	font-family: "FontAwesome";
-	content: "\uf028";
+	content: "\\f028";
 	width: 36px;
 	display: block;
 }
@@ -269,7 +269,7 @@ html, body, .player { height: 100%; }
 }
 .controller .comments-btn:before {
 	font-family: "FontAwesome";
-	content: "\uf075";
+	content: "\\f075";
 }
 .controller .comments-btn.enable:before {
 	color: #DF6558;
@@ -290,15 +290,15 @@ html, body, .player { height: 100%; }
 }
 .controller .fullscreen:before {
 	font-family: "FontAwesome";
-	content: "\uf0b2";
+	content: "\\f0b2";
 }
 .controller .allscreen:before {
 	font-family: "FontAwesome";
-	content: "\uf065";
+	content: "\\f065";
 }
 .controller .normalscreen:before {
 	font-family: "FontAwesome";
-	content: "\uf066";
+	content: "\\f066";
 }
 .controller .hd {
 	white-space:nowrap;
