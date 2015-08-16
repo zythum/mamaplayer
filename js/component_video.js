@@ -6,6 +6,7 @@ module.exports = {
 		this.video.addEventListener('play', this.onVideoPlay.bind(this))
 		this.video.addEventListener('pause', this.onVideoTimePause.bind(this))
 		this.video.addEventListener('loadedmetadata', this.onVideoLoadedMetaData.bind(this))
+		this.video.addEventListener('webkitplaybacktargetavailabilitychanged', this.onPlaybackTargetAvailabilityChanged.bind(this))
 		// var eventTester = function (e) {
 		// 	this.video.addEventListener(e, function(){ console.log(e) })
 		// }.bind(this)
@@ -30,7 +31,7 @@ module.exports = {
 		// eventTester("ratechange");  //播放速率改变
 		// eventTester("durationchange");  //资源长度改变
 		// eventTester("volumechange");    //音量改变
-		
+
 		setInterval(this.videoBuffered.bind(this), 1000)
 
 		this.DOMs.volume_anchor.style.width = this.video.volume*100 + '%'
@@ -47,7 +48,7 @@ module.exports = {
 	videoBuffered: function () {
 		var buffered = this.video.buffered
 		var currentTime = this.video.currentTime
-		var bufferedTime = buffered.length == 0 ? 0 : buffered.end(buffered.length - 1)			
+		var bufferedTime = buffered.length == 0 ? 0 : buffered.end(buffered.length - 1)
 		this.DOMs.buffered_anchor.style.width = Math.min(Math.max(bufferedTime/this.video.duration, 0), 1)*100 + '%'
 		if (bufferedTime == 0 || bufferedTime <= currentTime) {
 			this.DOMs.player.classList.add('loading')
@@ -65,6 +66,14 @@ module.exports = {
 		if (this.video.preloadStartTime) {
 			this.video.currentTime = this.video.preloadStartTime
 			delete this.video.preloadStartTime
+		}
+	},
+	onPlaybackTargetAvailabilityChanged: function (evt) {
+		var cls = 'support-airplay'
+		if (evt.availability === "available") {
+			this.DOMs.player.classList.add(cls)
+		} else {
+			this.DOMs.player.classList.remove(cls)
 		}
 	}
 }

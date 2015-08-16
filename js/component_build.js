@@ -17,19 +17,19 @@ module.exports = {
 					this.styleSheet.cssText = css
 				} catch (e) {
 					this.appendChild( document.createTextNode(css) )
-				}				
+				}
 			})
 			createElement('link', {
 				appendTo: head,
 				href: "http://libs.cncdn.cn/font-awesome/4.3.0/css/font-awesome.min.css",
 				rel: "stylesheet",
-				type: "text/css"				
+				type: "text/css"
 			})
-			
+
 			//处理页面html
 			body.innerHTML = html
 			this.DOMs = parseDOM(body, ['player', 'video', 'video-frame', 'comments', 'comments-btn', 'play', 'progress_anchor', 'buffered_anchor', 'fullscreen', 'allscreen', 'hd', 'volume_anchor', 'current', 'duration'])
-			
+
 			//处理video标签
 			this.video = this.DOMs.video
 
@@ -52,7 +52,7 @@ module.exports = {
 		if (placeHolder && placeHolder.parentNode) {
 			placeHolder.parentNode.replaceChild(iframe, placeHolder)
 			setContent();
-		} else {			
+		} else {
 			document.body.appendChild(iframe)
 			setContent();
 			document.body.removeChild(iframe)

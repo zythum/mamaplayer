@@ -50,7 +50,7 @@ module.exports = {
 	init: function () {
 		var doc        = this.iframe.contentDocument;
 		var clickEvent = delegateClick(doc)
-		
+
 		clickEvent.on('play', this.onPlayClick, this)
 		clickEvent.on('video-frame', this.onVideoClick, this)
 		clickEvent.on('source', this.onSourceClick, this)
@@ -58,6 +58,7 @@ module.exports = {
 		clickEvent.on('fullscreen', this.onfullScreenClick, this)
 		clickEvent.on('normalscreen', this.onNormalScreenClick, this)
 		clickEvent.on('comments-btn', this.oncommentsBtnClick, this)
+		clickEvent.on('airplay', this.onAirplayBtnClick, this)
 
 		doc.documentElement.addEventListener('keydown', this.onKeyDown.bind(this), false)
 
@@ -91,7 +92,7 @@ module.exports = {
 					this.onNormalScreenClick()
 				} else {
 					this.onAllScreenClick()
-				}		
+				}
 				break
 			case 70: //f
 				if ( !this.DOMs.player.classList.contains('fullscreen') ) {
@@ -100,9 +101,9 @@ module.exports = {
 				break
 		}
 	},
-	onVideoClick: function () {		
+	onVideoClick: function () {
 		if (this.videoClickDblTimer == undefined) {
-			this.videoClickDblTimer = setTimeout(function () {				
+			this.videoClickDblTimer = setTimeout(function () {
 				this.videoClickDblTimer = undefined
 				//single click
 				this.onPlayClick();
@@ -112,7 +113,7 @@ module.exports = {
 			clearTimeout(this.videoClickDblTimer)
 			this.videoClickDblTimer = undefined
 			//dbl click
-			document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement ? 
+			document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement ?
 				this.onNormalScreenClick() : this.onfullScreenClick()
 		}
 	},
@@ -196,6 +197,8 @@ module.exports = {
 			this.DOMs.comments.style.display = 'none'
 			this.DOMs['comments-btn'].classList.remove('enable')
 		}
-		
+	},
+	onAirplayBtnClick: function () {
+		this.video.webkitShowPlaybackTargetPicker();
 	}
 }

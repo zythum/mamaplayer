@@ -5,7 +5,7 @@ html, body, .player { height: 100%; }
 .player:-webkit-full-screen { width: 100%; cursor:url(data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg==); }
 .player:-moz-full-screen { width: 100%; cursor:url(data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg==); }
 .player:full-screen { width: 100%; cursor:url(data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg==); }
-.player {	
+.player {
 	border-radius: 3px;
 	overflow: hidden;
 	position: relative;
@@ -168,7 +168,7 @@ html, body, .player { height: 100%; }
 	-moz-transform: translateY(-50%);
 	transform: translateY(-50%);
 }
-.controller .progress .anchor.buffered_anchor {	
+.controller .progress .anchor.buffered_anchor {
 	position: relative;
 	background: rgba(255,255,255,0.1);
 }
@@ -191,6 +191,7 @@ html, body, .player { height: 100%; }
 .controller .volume,
 .controller .time,
 .controller .hd,
+.controller .airplay,
 .controller .allscreen,
 .controller .normalscreen,
 .controller .comments-btn,
@@ -205,6 +206,7 @@ html, body, .player { height: 100%; }
 	pointer-events: auto;
 }
 .controller .hd,
+.controller .airplay,
 .controller .allscreen,
 .controller .normalscreen,
 .controller .comments-btn,
@@ -254,6 +256,7 @@ html, body, .player { height: 100%; }
 	color: #DF6558;
 }
 .controller .fullscreen,
+.controller .airplay,
 .controller .allscreen,
 .controller .comments-btn,
 .controller .normalscreen {
@@ -274,6 +277,7 @@ html, body, .player { height: 100%; }
 .controller .comments-btn.enable:before {
 	color: #DF6558;
 }
+.controller .airplay,
 .controller .normalscreen {
 	display: none;
 }
@@ -282,7 +286,8 @@ html, body, .player { height: 100%; }
 	display: none;
 }
 .player:-webkit-full-screen .controller .normalscreen,
-.player.allscreen .controller .normalscreen {
+.player.allscreen .controller .normalscreen,
+.player.support-airplay .controller .airplay {
 	display: block;
 }
 .player.allscreen .controller .allscreen {
@@ -299,6 +304,10 @@ html, body, .player { height: 100%; }
 .controller .normalscreen:before {
 	font-family: "FontAwesome";
 	content: "\\f066";
+}
+.controller .airplay {
+	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0ibWFtYS1haXJwbGF5LWljb24iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjJweCIgaGVpZ2h0PSIxNnB4IiB2aWV3Qm94PSIwIDAgMjIgMTYiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwb2x5bGluZSBwb2ludHM9IjUsMTIgMSwxMiAxLDEgMjEsMSAyMSwxMiAxNywxMiIgc3R5bGU9ImZpbGw6dHJhbnNwYXJlbnQ7c3Ryb2tlOndoaXRlO3N0cm9rZS13aWR0aDoxIi8+PHBvbHlsaW5lIHBvaW50cz0iNCwxNiAxMSwxMCAxOCwxNiIgc3R5bGU9ImZpbGw6d2hpdGU7c3Ryb2tlOnRyYW5zcGFyZW50O3N0cm9rZS13aWR0aDowIi8+PC9zdmc+DQo=) no-repeat center 20px;
+	background-size: 22px auto;
 }
 .controller .hd {
 	white-space:nowrap;
