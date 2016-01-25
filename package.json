@@ -1,0 +1,25 @@
+{
+  "name": "mamaplayer",
+  "description": "妈妈播放器",
+  "version": "0.0.0",
+  "author": "朱一<zythum02@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zythum/mamaplayer.git"
+  },
+  "dependencies": {
+    "gulp": "3.9.0",
+    "gulp-uglify": "1.1.0",
+    "gulp-util": "3.0.4",
+    "gulp-browserify": "0.5.1",
+    "through2": "2.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/zythum/mama2/issues"
+  },
+  "homepage": "https://github.com/zythum/mama2",
+  "scripts": {
+    "start": "gulp"
+  }
+}

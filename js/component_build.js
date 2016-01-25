@@ -43,6 +43,7 @@ module.exports = {
 			src: 'about:blank',
 			mozallowfullscreen: "mozallowfullscreen",
 			webkitallowfullscreen: "webkitallowfullscreen",
+			allowfullscreen: "allowfullscreen",
 			style: {
 				width: this.size[0] + 'px',
 				height: this.size[1] + 'px',
