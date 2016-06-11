@@ -8,7 +8,7 @@ function DelegateClickByClassName (rootElement) {
 	this._eventMap = {}
 	this._rootElement = rootElement
 	this._isRootElementBindedClick = false
-	
+
 	this._bindClickFunction = function (e) {
 		(function loop (handler, target) {
 			if (target && target.nodeName) {
@@ -30,7 +30,7 @@ extend(DelegateClickByClassName.prototype, {
 		}
 		this._eventMap[type].push([func, context]);
 		if (!this._isRootElementBindedClick) {
-			_isRootElementBindedClick = true
+			this._isRootElementBindedClick = true
 			this._rootElement.addEventListener('click', this._bindClickFunction, false)
 		}
 	},
@@ -46,7 +46,7 @@ extend(DelegateClickByClassName.prototype, {
 		}
 		for (var index in this._eventMap) break
 		if (index === undefined && !!this._isRootElementBindedClick) {
-			_isRootElementBindedClick = false
+			this._isRootElementBindedClick = false
 			this._rootElement.removeEventListener('click', this._bindClickFunction, false)
 		}
 	},
